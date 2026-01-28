@@ -2,25 +2,25 @@ FROM alpine:latest AS alpine_base
 
 FROM n8nio/n8n:latest
 
-# Copy apk and its deps from Alpine
+# Copy apk and its deps from Alpine (this part is correct)
 COPY --from=alpine_base /sbin/apk /sbin/
 COPY --from=alpine_base /usr/lib/libapk.so* /usr/lib/
 
 USER root
 
-# 1. Install Python and pip
-RUN apk add --no-cache python3 py3-pip
+# 1. Install Python using apk
+RUN apk add --no-cache python3
 
-# 2. Upgrade pip and install the venv module
-RUN python3 -m ensurepip && \
-    pip3 install --no-cache --upgrade pip setuptools wheel
-
-# 3. Create a virtual environment in /opt/venv
+# 2. Create the Python virtual environment
 RUN python3 -m venv /opt/venv
 
-# 4. Install packages *inside* the virtual environment
-# Install any packages you need here, e.g., pandas, requests
+# 3. Install packages USING THE VENV'S PIP
+# Replace 'pandas' with any packages you need
+RUN /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN /opt/venv/bin/pip install --no-cache-dir pandas
+
+# 4. Add the venv to the PATH for the entire container
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Continue with your original setup
 WORKDIR /home/node/packages/cli
