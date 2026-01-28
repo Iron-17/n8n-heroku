@@ -1,12 +1,18 @@
+FROM alpine:latest AS alpine_base
+
 FROM n8nio/n8n:latest
+
+# Step 1: Restore apk by copying it from a fresh Alpine image
+COPY --from=alpine_base /sbin/apk /sbin/
+COPY --from=alpine_base /usr/lib/libapk.so* /usr/lib/
 
 USER root
 
-# --- ADD THESE LINES TO INSTALL PYTHON ---
-RUN apk add --update --no-cache python3 py3-pip && \
+# Step 2: Install Python and pip (plus any other packages you need)
+RUN apk add --no-cache python3 py3-pip && \
     python3 -m ensurepip --upgrade
-# -----------------------------------------
 
+# Step 3: Continue with your original setup
 WORKDIR /home/node/packages/cli
 ENTRYPOINT []
 
